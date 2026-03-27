@@ -161,6 +161,20 @@
       }
       .cursor-fx { display: none !important; }
     }
+    /* 左下角装饰：黑底抠图小白，叠在蜂巢底纹之上、主内容之下 */
+    .bg-mascot {
+      position: fixed;
+      left: max(0px, env(safe-area-inset-left));
+      bottom: max(0px, env(safe-area-inset-bottom));
+      width: clamp(9.25rem, 26vw, 16.75rem);
+      height: auto;
+      z-index: 0;
+      pointer-events: none;
+      user-select: none;
+      -webkit-user-drag: none;
+      opacity: 0.76;
+      filter: drop-shadow(0 0.22rem 1rem rgba(90, 70, 40, 0.045));
+    }
     .wrap {
       position: relative;
       z-index: 1;
@@ -749,6 +763,7 @@
   </style>
 </head>
 <body>
+  <img src="assets/xiaobai.png" alt="" class="bg-mascot" width="520" height="507" decoding="async" />
   <div id="cursor-fx" class="cursor-fx" aria-hidden="true">
     <div class="cursor-fx__cell">
       <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
