@@ -16,8 +16,8 @@
 ## 方式一：网页 `index.html`
 
 1. 填 **故事梗概**，上传 **教研 .xlsx**。
-2. **方式 A**：选择 **服务商**（Gemini / OpenAI / Claude）→ 填 **API Key** 与 **模型** →「调用 API 生成完整脚本」。  
-   - **OpenAI / Claude** 官方域名**常被浏览器 CORS 拦截**，若失败请用方式 B 或方式二（Python 无此限制）。
+2. **方式 A**：选择 **服务商**（Gemini / OpenAI / Claude / **OpenAI 兼容**）→ 填 **API Key** 与 **模型**；选兼容时需再填 **Base URL**（到 `…/v1`）→「调用 API 生成完整脚本」。  
+   - **OpenAI / Claude 官方**与国内部分接口**可能被浏览器 CORS 拦截**，若失败请用方式 B 或方式二（Python 无此限制）。
 3. **方式 B**：点 **复制提示词** → 粘贴到 **Cursor / ChatGPT / Claude** 等 → 将模型返回的 **Markdown 表**粘回「模型输出」→ **解析表格并下载**。
 
 依赖：需能加载 SheetJS CDN；API Key 仅在你本机浏览器发往对应厂商，**不经过我们的服务器**。
