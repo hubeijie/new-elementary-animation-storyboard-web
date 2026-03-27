@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>蜂巢脚本生成器 · 梗概 + 教研动效 → AI 五列表</title>
+  <meta name="description" content="蜂巢脚本生成器：梗概+教研动效说明→五列脚本；教研逐字保真、剧情衔接、画面描述分行体；对齐 elementary-animation-storyboard-script；可导出 Excel。" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800;900&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
+  <style>
+    :root {
+      /* 暖黄 / 奶油 / 蜂蜜色，避免荧光黄 */
+      --bg-top: #fdf8ef;
+      --bg-bottom: #f3e8d4;
+      --card: #fffdf8;
+      --card-edge: #fff9f0;
+      --text: #3d3428;
+      --muted: #7a6e5e;
+      --honey: #c9a45c;
+      --honey-deep: #a67c3d;
+      --butter: #f5e6c8;
+      --cream: #faf0dc;
+      --peach: #f0d4c4;
+      --border: #e8d4b8;
+      --shadow: 0 4px 20px rgba(90, 70, 40, 0.08);
+      --radius: 18px;
+      --radius-sm: 12px;
+      --font: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-display: "Noto Sans SC", "PingFang SC", sans-serif;
+      --font-title: "Noto Sans SC", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+      --font-lead: "Noto Serif SC", "Source Han Serif SC", "Songti SC", "SimSun", serif;
+      /* 蜂巢纹理（加粗一层 + 淡一层叠用） */
+      --hive-pattern: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='90' viewBox='0 0 52 90'%3E%3Cg fill='none' stroke='%23b8893d' stroke-width='0.85' stroke-opacity='0.22'%3E%3Cpath d='M26 1.2 48.2 14.1v25.8L26 52.9 3.8 39.9V14.1z'/%3E%3Cpath d='M26 37.1 48.2 50v25.8L26 88.8 3.8 75.9V50z'/%3E%3Cpath d='M52 19.1 74.2 32v25.8L52 70.7 29.8 57.8V32z' transform='translate(-26 0)'/%3E%3C/g%3E%3C/svg%3E");
+      --hive-pattern-soft: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='52' height='90' viewBox='0 0 52 90'%3E%3Cg fill='none' stroke='%23d4b87a' stroke-width='0.5' stroke-opacity='0.1'%3E%3Cpath d='M26 1.2 48.2 14.1v25.8L26 52.9 3.8 39.9V14.1z'/%3E%3Cpath d='M26 37.1 48.2 50v25.8L26 88.8 3.8 75.9V50z'/%3E%3Cpath d='M52 19.1 74.2 32v25.8L52 70.7 29.8 57.8V32z' transform='translate(-26 0)'/%3E%3C/g%3E%3C/svg%3E");
+    }
+    @keyframes hive-bg-rise {
+      from {
+        background-position: 0 0, 26px 45px, 0 0;
+      }
+      to {
+        background-position: 0 -90px, 26px -45px, 0 0;
+      }
+    }
+    @keyframes honey-drip-flow {
+      from {
+        background-position: 0 0;
+      }
+      to {
+        background-position: 240px 0;
+      }
+    }
+    * { box-sizing: border-box; }
+    html { scroll-behavior: smooth; }
+    .cursor-fx {
+      display: none;
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      z-index: 2147483646;
+      overflow: hidden;
+    }
+    html.has-custom-cursor .cursor-fx {
+      display: block;
+    }
+    html.has-custom-cursor,
+    html.has-custom-cursor body {
+      cursor: none !important;
+    }
+    html.has-custom-cursor #steps-bar > span,
+    html.has-custom-cursor textarea,
+    html.has-custom-cursor input[type="text"],
+    html.has-custom-cursor input[type="password"],
+    html.has-custom-cursor select,
+    html.has-custom-cursor .file-row label.pick,
+    html.has-custom-cursor button:not(:disabled),
+    html.has-custom-cursor details.sub summary,
+    html.has-custom-cursor a {
+      cursor: none !important;
+    }
+    html.has-custom-cursor button:disabled {
+      cursor: not-allowed !important;
+    }
+    .cursor-fx__cell {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 0;
+      height: 0;
+      pointer-events: none;
+      will-change: transform;
+    }
+    .cursor-fx__cell svg {
+      display: block;
+      margin: -28px 0 0 -28px;
+      width: 56px;
+      height: 56px;
+      overflow: visible;
+    }
+    .cursor-fx__hex-fill {
+      fill: rgba(255, 253, 248, 0.26);
+      stroke: none;
+    }
+    .cursor-fx__hex-edge {
+      fill: none;
+      stroke: url(#cursor-fx-hex-grad);
+      stroke-width: 2.5;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      stroke-dasharray: 36 96;
+      animation: cursor-fx-hex-stream 2.85s linear infinite;
+    }
+    @keyframes cursor-fx-hex-stream {
+      to {
+        stroke-dashoffset: -132;
+      }
+    }
+    .cursor-fx__nectar {
+      fill: url(#cursor-fx-nectar-grad);
+      filter: drop-shadow(0 2px 4px rgba(166, 124, 61, 0.4));
+      transform-origin: 26px 23px;
+      animation: cursor-fx-nectar 2.1s ease-in-out infinite;
+    }
+    @keyframes cursor-fx-nectar {
+      0%, 100% {
+        transform: scale(1.42) translateY(0);
+      }
+      50% {
+        transform: scale(1.55) translateY(1px);
+      }
+    }
+    body {
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      line-height: 1.6;
+      font-size: 15px;
+      min-height: 100vh;
+      background: linear-gradient(165deg, var(--bg-top) 0%, var(--butter) 42%, var(--bg-bottom) 100%);
+      background-attachment: fixed;
+    }
+    /* 蜂巢纹理 + 淡圆点背景 */
+    body::before {
+      content: "";
+      pointer-events: none;
+      position: fixed;
+      inset: 0;
+      background-image: var(--hive-pattern), var(--hive-pattern-soft), radial-gradient(rgba(201, 164, 92, 0.05) 1px, transparent 1px);
+      background-size: 52px 90px, 52px 90px, 22px 22px;
+      background-position: 0 0, 26px 45px, 0 0;
+      z-index: 0;
+      animation: hive-bg-rise 10s linear infinite;
+      will-change: background-position;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      body::before,
+      header.site-head::before {
+        animation: none !important;
+      }
+      .cursor-fx { display: none !important; }
+    }
+    .wrap {
+      position: relative;
+      z-index: 1;
+      max-width: 1040px;
+      margin: 0 auto;
+      padding: 1.5rem 1.25rem 3rem;
+    }
+    /* 顶区：品牌全宽居中，说明单独一块在下方（不与标题并列） */
+    .top-stack {
+      display: flex;
+      flex-direction: column;
+      gap: 1.1rem;
+      margin-bottom: 1.25rem;
+    }
+    /* 主工作区：左侧步骤条 + 右侧表单卡片 */
+    .layout-work {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    @media (min-width: 768px) {
+      .layout-work {
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 1.15rem 1.35rem;
+      }
+      .steps-rail {
+        flex: 0 0 10.5rem;
+        position: sticky;
+        top: 1rem;
+      }
+      .steps-rail .steps {
+        flex-direction: column;
+        flex-wrap: nowrap;
+        justify-content: flex-start;
+        align-items: stretch;
+        margin: 0;
+        gap: 0.45rem;
+      }
+      #steps-bar > span {
+        width: 100%;
+        justify-content: flex-start;
+        text-align: left;
+        padding-left: 0.85rem;
+        padding-right: 0.65rem;
+      }
+      .work-main {
+        flex: 1;
+        min-width: 0;
+      }
+    }
+    .steps-rail .steps-label {
+      display: none;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.14em;
+      color: var(--muted);
+      margin: 0 0 0.4rem;
+      text-transform: uppercase;
+    }
+    @media (min-width: 768px) {
+      .steps-rail .steps-label {
+        display: block;
+      }
+    }
+    header.site-head {
+      /* 暖纸底 + 双斜细织纹 + 细点砂 + 淡蜂巢 */
+      background-color: #f7f2e8;
+      background-image:
+        repeating-linear-gradient(
+          122deg,
+          transparent 0,
+          transparent 8px,
+          rgba(140, 110, 72, 0.045) 8px,
+          rgba(140, 110, 72, 0.045) 9px
+        ),
+        repeating-linear-gradient(
+          58deg,
+          transparent 0,
+          transparent 11px,
+          rgba(110, 85, 55, 0.035) 11px,
+          rgba(110, 85, 55, 0.035) 12px
+        ),
+        radial-gradient(rgba(122, 90, 55, 0.065) 0.55px, transparent 0.6px),
+        var(--hive-pattern-soft);
+      background-size: auto, auto, 14px 14px, 56px 97px;
+      background-position: 0 0, 3px 6px, 0 0, 18px 28px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.75rem 1.4rem 1.15rem;
+      margin-bottom: 0;
+      box-shadow:
+        var(--shadow),
+        inset 0 1px 0 rgba(255, 255, 255, 0.92),
+        inset 0 -1px 0 rgba(201, 164, 92, 0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    /* 顶缘蜂蜜滴落带（SVG 平铺，内容叠在上层） */
+    header.site-head::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: clamp(22px, 4.2vw, 30px);
+      z-index: 0;
+      pointer-events: none;
+      background-image: url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22200%22%20height%3D%2226%22%20viewBox%3D%220%200%20200%2026%22%20preserveAspectRatio%3D%22none%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23fff3c8%22%20stop-opacity%3D%220.75%22%2F%3E%3Cstop%20offset%3D%220.45%22%20stop-color%3D%22%23f0c14d%22%20stop-opacity%3D%220.55%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23d4a02a%22%20stop-opacity%3D%220.4%22%2F%3E%3C%2FlinearGradient%3E%3ClinearGradient%20id%3D%22shine%22%20x1%3D%220%22%20y1%3D%220%22%20x2%3D%220%22%20y2%3D%221%22%3E%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23ffffff%22%20stop-opacity%3D%220.35%22%2F%3E%3Cstop%20offset%3D%220.5%22%20stop-color%3D%22%23ffffff%22%20stop-opacity%3D%220%22%2F%3E%3C%2FlinearGradient%3E%3C%2Fdefs%3E%3Cpath%20fill%3D%22url%28%23g%29%22%20d%3D%22M0%2C0%20L200%2C0%20L200%2C4.5%20C188%2C4.5%20182%2C18%20172%2C11%20C162%2C5%20154%2C5%20146%2C12%20C138%2C20%20128%2C18%20120%2C10%20C112%2C4%20104%2C4%2096%2C11%20C88%2C19%2078%2C18%2070%2C10%20C62%2C4%2054%2C4%2046%2C12%20C38%2C20%2028%2C18%2020%2C10%20C12%2C4%204%2C5%200%2C4.5%20Z%22%2F%3E%3Cpath%20fill%3D%22url%28%23shine%29%22%20d%3D%22M0%2C0%20L200%2C0%20L200%2C3%20L0%2C3%20Z%22%2F%3E%3C%2Fsvg%3E");
+      background-repeat: repeat-x;
+      background-size: 240px 100%;
+      background-position: 0 0;
+      filter: drop-shadow(0 3px 4px rgba(160, 110, 45, 0.12));
+      animation: honey-drip-flow 22s linear infinite;
+    }
+    /* 底缘淡蜜色收边（与顶带呼应） */
+    header.site-head::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 18px;
+      z-index: 0;
+      pointer-events: none;
+      background: linear-gradient(to top, rgba(212, 160, 42, 0.14), rgba(255, 243, 200, 0.04) 55%, transparent);
+      border-radius: 0 0 calc(var(--radius) - 3px) calc(var(--radius) - 3px);
+    }
+    .head-hero {
+      text-align: center;
+      position: relative;
+      z-index: 1;
+      padding-bottom: 0.15rem;
+    }
+    .head-brand {
+      margin: 0 auto;
+      max-width: 100%;
+    }
+    /* 标题：胶囊底（两端半圆）+ 半透明上下渐变 */
+    .title-plate-wrap {
+      display: inline-block;
+      margin: 0 auto;
+      max-width: 100%;
+      filter:
+        drop-shadow(0 3px 14px rgba(120, 85, 45, 0.12))
+        drop-shadow(0 0 0 1px rgba(201, 164, 92, 0.4));
+    }
+    .title-plate {
+      display: block;
+      margin: 0;
+      position: relative;
+      isolation: isolate;
+      padding: 0.65rem 1.4rem 0.7rem;
+      border-radius: 999px;
+      background-image:
+        linear-gradient(180deg, rgba(255, 252, 240, 0.28) 0%, rgba(255, 255, 255, 0) 48%),
+        linear-gradient(
+          180deg,
+          rgba(248, 232, 200, 0.5) 0%,
+          rgba(240, 213, 154, 0.5) 48%,
+          rgba(228, 192, 110, 0.5) 100%
+        );
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.38);
+    }
+    .main-title {
+      margin: 0;
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 0.35rem 0.45rem;
+    }
+    .title-text {
+      font-family: var(--font-title);
+      font-size: clamp(1.58rem, 5.1vw, 2.2rem);
+      font-weight: 900;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      text-align: center;
+      color: #a86a24;
+      text-shadow: none;
+    }
+    @supports ((-webkit-background-clip: text) or (background-clip: text)) {
+      .title-text {
+        background: linear-gradient(
+          180deg,
+          #d9a84a 0%,
+          #c28f2e 42%,
+          #9e6e22 100%
+        );
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        text-shadow: none;
+        filter: none;
+      }
+    }
+    .head-lead-area {
+      margin: 0.55rem auto 0;
+      padding: 0.75rem 0 0;
+      max-width: 52rem;
+      border-top: 1px dashed rgba(201, 164, 92, 0.45);
+      position: relative;
+      z-index: 1;
+    }
+    .lead-steps {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+      display: grid;
+      gap: 0.6rem;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 600px) {
+      .lead-steps {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 0.65rem 0.75rem;
+      }
+    }
+    .lead-steps li {
+      margin: 0;
+      padding: 0.65rem 0.7rem 0.7rem;
+      text-align: center;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(165deg, rgba(255, 253, 248, 0.98), rgba(252, 236, 208, 0.42));
+      border: 1px solid rgba(201, 164, 92, 0.32);
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
+    }
+    .lead-steps .ls-badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 1.55rem;
+      height: 1.55rem;
+      margin-bottom: 0.35rem;
+      border-radius: 50%;
+      font-size: 0.72rem;
+      font-weight: 800;
+      font-family: var(--font-display);
+      color: #fffdf8;
+      background: linear-gradient(165deg, var(--honey), var(--honey-deep));
+      box-shadow: 0 2px 0 rgba(122, 90, 45, 0.25);
+    }
+    .lead-steps .ls-title {
+      display: block;
+      font-size: 0.82rem;
+      font-weight: 800;
+      font-family: var(--font-display);
+      color: var(--honey-deep);
+      letter-spacing: 0.06em;
+    }
+    .head-lead {
+      margin: 0.85rem auto 0;
+      max-width: 40em;
+      padding: 0 0.35rem;
+      font-family: var(--font-lead);
+      font-size: 0.9rem;
+      font-weight: 400;
+      line-height: 1.85;
+      letter-spacing: 0.03em;
+      text-align: center;
+      color: #5c5348;
+      opacity: 0.95;
+    }
+    .head-lead strong {
+      color: var(--honey-deep);
+      font-weight: 700;
+      letter-spacing: 0.02em;
+    }
+    .banner {
+      position: relative;
+      background: linear-gradient(135deg, var(--cream) 0%, var(--butter) 100%);
+      border: 2px solid var(--border);
+      border-left: 5px solid var(--honey);
+      color: var(--text);
+      padding: 0.85rem 1rem 0.95rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.86rem;
+      margin-bottom: 1.15rem;
+      box-shadow: 0 2px 12px rgba(166, 124, 61, 0.06);
+      overflow: hidden;
+    }
+    .banner::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 48px;
+      height: 10px;
+      background: radial-gradient(ellipse 50% 100% at 50% 0%, rgba(232, 192, 102, 0.5), transparent 70%);
+      pointer-events: none;
+    }
+    .banner::after {
+      content: "";
+      position: absolute;
+      right: 0.5rem;
+      bottom: 0.35rem;
+      width: 28px;
+      height: 24px;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 28'%3E%3Cellipse cx='16' cy='15' rx='11' ry='8' fill='%23f7d54a' stroke='%235c4a32' stroke-width='1' opacity='0.35'/%3E%3Cpath d='M5 15h22' stroke='%233d3428' stroke-width='1.5' opacity='0.2'/%3E%3C/svg%3E") center/contain no-repeat;
+      pointer-events: none;
+      opacity: 0.85;
+    }
+    .banner strong { color: var(--honey-deep); }
+    .banner p { margin: 0; line-height: 1.55; }
+    .banner p + p { margin-top: 0.5rem; }
+    .steps {
+      display: flex;
+      gap: 0.5rem;
+      margin: 0 0 1.1rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    #steps-bar > span {
+      padding: 0.45rem 0.95rem;
+      border-radius: 14px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      background: var(--card-edge);
+      color: var(--muted);
+      border: 2px dashed var(--border);
+      cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    #steps-bar > span.on {
+      background: linear-gradient(145deg, #fff6e0, var(--butter));
+      color: var(--honey-deep);
+      border: 2px solid var(--honey);
+      border-style: solid;
+      box-shadow: 0 3px 0 rgba(166, 124, 61, 0.18);
+      transform: translateY(-1px);
+    }
+    .card {
+      background: var(--card);
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.35rem 1.35rem 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: var(--shadow);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before,
+    .card::after {
+      z-index: 0;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      top: -20px;
+      right: -24px;
+      width: 120px;
+      height: 138px;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      background:
+        linear-gradient(160deg, rgba(245, 230, 200, 0.65), rgba(201, 164, 92, 0.18)),
+        var(--hive-pattern-soft);
+      background-size: auto, 28px 48px;
+      pointer-events: none;
+      opacity: 0.75;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      bottom: -6px;
+      left: 12px;
+      width: 36px;
+      height: 14px;
+      background: radial-gradient(ellipse 45% 90% at 50% 0%, rgba(232, 192, 102, 0.35), transparent 75%);
+      pointer-events: none;
+    }
+    .card h2 {
+      margin: 0 0 0.5rem;
+      font-size: 1.08rem;
+      font-weight: 800;
+      color: var(--honey-deep);
+    }
+    .card h3 {
+      margin: 1.15rem 0 0.4rem;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .card h3::before {
+      content: "";
+      display: block;
+      width: 11px;
+      height: 12px;
+      flex-shrink: 0;
+      clip-path: polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+      background: linear-gradient(165deg, var(--butter), var(--honey));
+      opacity: 0.85;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+    .hint { margin: 0 0 0.75rem; font-size: 0.88rem; color: var(--muted); }
+    .hint.api-cors-hint {
+      margin-top: -0.35rem;
+      margin-bottom: 0.65rem;
+      padding: 0.45rem 0.55rem;
+      border-radius: 8px;
+      background: rgba(201, 164, 92, 0.12);
+      border: 1px dashed rgba(201, 164, 92, 0.35);
+    }
+    .card > * { position: relative; z-index: 1; }
+    label.lbl {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+      font-size: 0.9rem;
+      color: var(--text);
+    }
+    textarea,
+    input[type="text"],
+    input[type="password"],
+    select {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      font: inherit;
+      background: #fffefb;
+      color: var(--text);
+      transition: border-color 0.15s, box-shadow 0.15s;
+      cursor: text;
+    }
+    textarea:focus,
+    input:focus,
+    select:focus {
+      outline: none;
+      border-color: var(--honey);
+      box-shadow: 0 0 0 3px rgba(201, 164, 92, 0.25);
+    }
+    textarea { min-height: 140px; resize: vertical; }
+    .file-row {
+      margin-top: 0.75rem;
+      padding: 1rem 0.85rem;
+      border: 3px dashed var(--honey);
+      border-radius: var(--radius-sm);
+      text-align: center;
+      background: linear-gradient(180deg, #fffdf8, var(--cream));
+    }
+    .file-row input[type="file"] { display: none; }
+    .file-row label.pick {
+      cursor: pointer;
+      color: var(--honey-deep);
+      font-weight: 800;
+      text-decoration: underline;
+      text-decoration-style: wavy;
+      text-underline-offset: 4px;
+    }
+    .file-name { margin-top: 0.55rem; font-size: 0.85rem; color: var(--muted); word-break: break-all; }
+    .actions,
+    .nav-btns { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.55rem; align-items: center; }
+    button {
+      font: inherit;
+      font-weight: 700;
+      padding: 0.6rem 1.25rem;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(180deg, #ddb86e, var(--honey));
+      color: #fffdf8;
+      box-shadow: 0 4px 0 var(--honey-deep), 0 6px 16px rgba(166, 124, 61, 0.2);
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    button:hover:not(:disabled) {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 0 var(--honey-deep), 0 8px 18px rgba(166, 124, 61, 0.22);
+    }
+    button:active:not(:disabled) {
+      transform: translateY(2px);
+      box-shadow: 0 2px 0 var(--honey-deep), 0 3px 10px rgba(166, 124, 61, 0.15);
+    }
+    button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+    button.secondary {
+      background: var(--card);
+      color: var(--honey-deep);
+      border: 2px solid var(--border);
+      box-shadow: 0 3px 0 rgba(232, 212, 184, 0.9);
+    }
+    button.secondary:hover:not(:disabled) {
+      background: var(--cream);
+      box-shadow: 0 4px 0 rgba(232, 212, 184, 1);
+    }
+    button.secondary:active:not(:disabled) {
+      box-shadow: 0 1px 0 rgba(232, 212, 184, 1);
+    }
+    .step-panel { display: none; }
+    .step-panel.active { display: block; }
+    code {
+      background: var(--butter);
+      padding: 0.12rem 0.4rem;
+      border-radius: 6px;
+      font-size: 0.88em;
+      color: var(--honey-deep);
+      border: 1px solid var(--border);
+    }
+    .ok { color: #6b8f5e; font-size: 0.88rem; margin-top: 0.5rem; font-weight: 600; }
+    .err { color: #b4534a; font-size: 0.88rem; margin-top: 0.5rem; font-weight: 600; }
+    details.sub {
+      margin-top: 1rem;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 0.65rem 0.85rem;
+      background: var(--cream);
+    }
+    details.sub summary {
+      cursor: pointer;
+      font-weight: 700;
+      color: var(--muted);
+    }
+    footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: var(--muted);
+      padding: 1.25rem 0.5rem 0;
+      line-height: 1.65;
+    }
+    .footer-hive {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.35em;
+      margin-bottom: 0.35rem;
+      flex-wrap: wrap;
+    }
+    .footer-hive .fh-hex {
+      color: var(--honey);
+      font-size: 1rem;
+      opacity: 0.45;
+      line-height: 1;
+    }
+    .footer-hive .fh-bee {
+      width: 26px;
+      height: auto;
+      opacity: 0.38;
+      vertical-align: middle;
+    }
+    .footer-hive .fh-bee.flip {
+      transform: scaleX(-1);
+    }
+    .grid2 { display: grid; gap: 0.75rem; }
+    @media (min-width: 560px) {
+      .grid2 { grid-template-columns: 1fr 1fr; }
+    }
+    /* 第一步：梗概与课题名分栏（中大屏） */
+    .step1-grid {
+      display: grid;
+      gap: 1rem 1.25rem;
+      align-items: start;
+    }
+    @media (min-width: 640px) {
+      .step1-grid {
+        grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+      }
+      .step1-side {
+        padding: 0.85rem 1rem;
+        border-radius: var(--radius-sm);
+        background: linear-gradient(165deg, rgba(255, 253, 248, 0.95), rgba(252, 238, 212, 0.35));
+        border: 1px solid rgba(201, 164, 92, 0.28);
+      }
+    }
+    .step1-side .nav-btns {
+      margin-top: 1.1rem;
+    }
+    @media (min-width: 640px) {
+      .step1-main textarea {
+        min-height: 200px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="cursor-fx" class="cursor-fx" aria-hidden="true">
+    <div class="cursor-fx__cell">
+      <svg viewBox="0 0 52 52" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+        <defs>
+          <linearGradient id="cursor-fx-hex-grad" x1="2" y1="6" x2="50" y2="48" gradientUnits="userSpaceOnUse">
+            <stop offset="0%" stop-color="#fffef5"/>
+            <stop offset="14%" stop-color="#fff0c2"/>
+            <stop offset="32%" stop-color="#ffd56a"/>
+            <stop offset="48%" stop-color="#e8a82e"/>
+            <stop offset="64%" stop-color="#c6862e"/>
+            <stop offset="82%" stop-color="#ffdf9a"/>
+            <stop offset="100%" stop-color="#8f5f1c"/>
+          </linearGradient>
+          <filter
+            id="cursor-fx-edge-bloom"
+            color-interpolation-filters="sRGB"
+            x="-70%"
+            y="-70%"
+            width="240%"
+            height="240%"
+          >
+            <feGaussianBlur in="SourceGraphic" stdDeviation="1.6" result="b"/>
+            <feColorMatrix
+              in="b"
+              type="matrix"
+              values="1 0 0 0 0.12
+                      0 1 0 0 0.06
+                      0 0 1 0 0
+                      0 0 0 0.85 0"
+              result="warm"
+            />
+            <feGaussianBlur in="warm" stdDeviation="2.4" result="b2"/>
+            <feMerge>
+              <feMergeNode in="b2"/>
+              <feMergeNode in="warm"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+          <radialGradient id="cursor-fx-nectar-grad" cx="35%" cy="30%" r="75%">
+            <stop stop-color="#fffef8"/>
+            <stop offset="0.55" stop-color="#f0c14d"/>
+            <stop offset="1" stop-color="#b8832e"/>
+          </radialGradient>
+        </defs>
+        <polygon class="cursor-fx__hex-fill" points="26,3.5 46.5,15.5 46.5,36.5 26,48.5 5.5,36.5 5.5,15.5"/>
+        <polygon
+          class="cursor-fx__hex-edge"
+          filter="url(#cursor-fx-edge-bloom)"
+          points="26,3.5 46.5,15.5 46.5,36.5 26,48.5 5.5,36.5 5.5,15.5"
+        />
+        <path
+          class="cursor-fx__nectar"
+          d="M26 17.2c-1.9 2.8-3.4 5.2-3.4 7.6 0 2.5 1.5 4.5 3.4 4.5s3.4-2 3.4-4.5c0-2.4-1.5-4.8-3.4-7.6z"
+        />
+      </svg>
+    </div>
+  </div>
+  <div class="wrap">
+    <div class="top-stack">
+    <header class="site-head">
+      <div class="head-hero">
+        <div class="head-brand">
+          <div class="title-plate-wrap">
+            <div class="title-plate">
+              <h1 class="main-title">
+                <span class="title-text">蜂巢脚本生成器</span>
+              </h1>
+            </div>
+          </div>
+        </div>
+        <div class="head-lead-area">
+          <ul class="lead-steps" role="list">
+            <li>
+              <span class="ls-badge" aria-hidden="true">1</span>
+              <span class="ls-title">梗概定线</span>
+            </li>
+            <li>
+              <span class="ls-badge" aria-hidden="true">2</span>
+              <span class="ls-title">动效入镜</span>
+            </li>
+            <li>
+              <span class="ls-badge" aria-hidden="true">3</span>
+              <span class="ls-title">五列成表</span>
+            </li>
+          </ul>
+          <p class="head-lead">
+            以<strong>已定稿梗概</strong>串起故事线；教研<strong>动效说明</strong>中<strong>逐字稿须逐字进「台词」</strong>（含【0】等编号），<strong>剧情只作衔接</strong>插在块前/块间/块后；<strong>动效进「画面描述」用分行体</strong>（每【n】、每 *复用* 各一行）。与 Cursor Skill <strong>elementary-animation-storyboard-script</strong> 同口径，可导出 Excel。
+          </p>
+        </div>
+      </div>
+    </header>
+    <div class="banner">
+      <p><strong>方式一（本页）：</strong>梗概拆镜并嵌入教研「逐字稿 / 动效」需大模型。本页<strong>不上传</strong>你的内容；可选 <strong>Gemini / OpenAI / Claude</strong> 直连（OpenAI、Claude 常被浏览器 CORS 拦截，失败请用「复制提示词」或 <code>梗概转脚本/generate_full_script.py</code>）。</p>
+      <p><strong>方式二（Cursor）：</strong>将 SKILL 解压到 <code>~/.cursor/skills/elementary-animation-storyboard-script/</code>，<strong>根层</strong>为 <code>SKILL.md</code> + <code>reference.md</code>。对话中说明梗概与动效表即可；Skill 含<strong>教研保真、衔接、分行体、默认 Excel</strong>等规则，与本页提示词一致。</p>
+    </div>
+    </div>
+
+    <div class="layout-work">
+    <aside class="steps-rail" aria-label="步骤导航">
+      <p class="steps-label">流程</p>
+      <div class="steps" id="steps-bar">
+      <span class="on" data-s="1">① 粘贴故事梗概</span>
+      <span data-s="2">② 上传动效说明</span>
+      <span data-s="3">③ AI生成并导出脚本</span>
+      </div>
+    </aside>
+    <main class="work-main">
+
+    <section class="step-panel active" id="step1">
+      <div class="card">
+        <h2>第一步：故事梗概</h2>
+        <p class="hint">粘贴<strong>已定稿</strong>梗概全文；后续分镜将<strong>以梗概为叙事主线</strong>展开。</p>
+        <div class="step1-grid">
+          <div class="step1-main">
+            <label class="lbl" for="synopsis">故事梗概</label>
+            <textarea id="synopsis" placeholder="粘贴完整故事梗概，可含 P1/P2/P3、人设与转折……"></textarea>
+          </div>
+          <div class="step1-side">
+            <label class="lbl" for="lesson-title">课题名（文件名与提示词用）</label>
+            <input type="text" id="lesson-title" placeholder="例如：我和神奇人物过一天" />
+            <div class="nav-btns">
+              <button type="button" id="to-step2">下一步</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="step-panel" id="step2">
+      <div class="card">
+        <h2>第二步：教研「动效说明」Excel</h2>
+        <p class="hint">需含列：<strong>画面</strong>、<strong>逐字稿</strong>、<strong>动效</strong>（可有 <strong>备注</strong>）。表头可在第 1～3 行。生成时<strong>逐字稿将逐字进入「台词」</strong>，<strong>动效进入「画面描述」且分行书写</strong>；梗概仅作衔接镜，不改写教研句。</p>
+        <div class="file-row">
+          <label class="pick" for="xlsx-in">点击选择 .xlsx</label>
+          <input type="file" id="xlsx-in" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
+          <div class="file-name" id="file-name">未选择文件</div>
+        </div>
+        <p class="ok" id="parse-msg" style="display:none;"></p>
+        <p class="err" id="parse-err" style="display:none;"></p>
+        <div class="nav-btns">
+          <button type="button" class="secondary" id="back-step1">上一步</button>
+          <button type="button" id="to-step3" disabled>下一步</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="step-panel" id="step3">
+      <div class="card">
+        <h2>第三步：AI 生成并导出 Excel</h2>
+        <p class="hint">生成结果须为 Markdown 五列表；「画面描述」列请用 <code>&lt;br&gt;</code> 换行以对应 Excel 多行。解析后写入「脚本表·完整剧情」（列已设自动换行），教研各表以「教研·」前缀附在同一簿备查。</p>
+
+        <h3>方式 A：浏览器调用 API</h3>
+        <p class="hint api-cors-hint">可选 <strong>Gemini</strong>、<strong>OpenAI</strong>、<strong>Claude</strong>。OpenAI / Claude 官方接口<strong>多数浏览器会因 CORS 失败</strong>，属正常现象；请改用「复制提示词」或本地 Python（无 CORS）。</p>
+        <div class="grid2">
+          <label class="lbl">服务商
+            <select id="api-provider" autocomplete="off">
+              <option value="gemini">Google Gemini</option>
+              <option value="openai">OpenAI</option>
+              <option value="claude">Anthropic Claude</option>
+            </select>
+          </label>
+          <label class="lbl">模型
+            <select id="api-model" autocomplete="off"></select>
+          </label>
+        </div>
+        <label class="lbl" style="margin-top:0.75rem">API Key（仅本页内存，刷新即无）
+          <input type="password" id="api-key" autocomplete="off" placeholder="" />
+        </label>
+        <div class="actions">
+          <button type="button" id="btn-api-generate">调用 API 生成完整脚本</button>
+          <button type="button" class="secondary" id="btn-copy-prompt">复制提示词（给 Cursor 等）</button>
+        </div>
+        <p class="err" id="llm-api-err" style="display:none;"></p>
+
+        <h3>方式 B：粘贴 AI 返回的 Markdown 表</h3>
+        <p class="hint">在 Cursor / ChatGPT 等中粘贴「复制提示词」生成的全文，将模型<strong>仅输出的表格</strong>粘到下方（可含 <code>```markdown</code> 代码块）。</p>
+        <label class="lbl" for="ai-raw">模型输出</label>
+        <textarea id="ai-raw" style="min-height:220px" placeholder="粘贴 | 镜号 | 画面 | 台词 | 画面描述 | 备注 | 表格……"></textarea>
+        <div class="actions">
+          <button type="button" id="btn-parse">解析表格并下载 .xlsx</button>
+          <button type="button" class="secondary" id="back-step2b">上一步</button>
+        </div>
+        <p class="err" id="parse-table-err" style="display:none;"></p>
+
+        <details class="sub">
+          <summary>应急：不经过 AI，仅把教研表映射成脚本草稿（无剧情融合）</summary>
+          <p class="hint">与需求不符时不要用；仅作动效表快速对齐五列占位。</p>
+          <button type="button" class="secondary" id="btn-dumb-map">下载「仅教研映射」xlsx</button>
+        </details>
+      </div>
+    </section>
+
+    </main>
+    </div>
+
+    <footer>
+      <div class="footer-hive" aria-hidden="true">
+        <span class="fh-hex">⬡</span>
+        <svg class="fh-bee" viewBox="0 0 44 36" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="22" cy="20" rx="13" ry="10" fill="#f0c63a" stroke="#6b5a45" stroke-width="1.1"/>
+          <path d="M9 20h26" stroke="#3d3428" stroke-width="1.8" opacity="0.28"/>
+          <ellipse cx="15" cy="16" rx="6" ry="4" fill="#fffdf5" opacity="0.88" transform="rotate(-16 15 16)"/>
+          <circle cx="11" cy="17" r="1.8" fill="#3d3428"/>
+        </svg>
+        <span class="fh-hex">⬡</span>
+        <svg class="fh-bee flip" viewBox="0 0 44 36" xmlns="http://www.w3.org/2000/svg">
+          <ellipse cx="22" cy="20" rx="13" ry="10" fill="#f0c63a" stroke="#6b5a45" stroke-width="1.1"/>
+          <path d="M9 20h26" stroke="#3d3428" stroke-width="1.8" opacity="0.28"/>
+          <ellipse cx="15" cy="16" rx="6" ry="4" fill="#fffdf5" opacity="0.88" transform="rotate(-16 15 16)"/>
+          <circle cx="11" cy="17" r="1.8" fill="#3d3428"/>
+        </svg>
+        <span class="fh-hex">⬡</span>
+      </div>
+      规范：教研逐字 · 剧情衔接 · 画面描述分行体 · 【n】/【0】对齐 · *复用* · 默认 Excel
+    </footer>
+  </div>
+
+  <script>
+(function () {
+  var workbookUpload = null;
+  var teachingPayload = null;
+
+  function $(id) { return document.getElementById(id); }
+
+  var API_MODELS = {
+    gemini: ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-pro"],
+    openai: ["gpt-4o-mini", "gpt-4o"],
+    claude: ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"]
+  };
+
+  function refillApiModels() {
+    if (!$("api-provider") || !$("api-model") || !$("api-key")) return;
+    var p = $("api-provider").value;
+    var sel = $("api-model");
+    var list = API_MODELS[p] || [];
+    sel.innerHTML = "";
+    list.forEach(function (m) {
+      var o = document.createElement("option");
+      o.value = m;
+      o.textContent = m;
+      sel.appendChild(o);
+    });
+    var ph = {
+      gemini: "Google AI Studio 项目 Key",
+      openai: "sk-…（OpenAI）",
+      claude: "sk-ant-…（Anthropic）"
+    };
+    $("api-key").placeholder = ph[p] || "";
+  }
+
+  function extractLlmTextOk(provider, j) {
+    if (provider === "gemini") {
+      var parts = j.candidates && j.candidates[0] && j.candidates[0].content && j.candidates[0].content.parts;
+      if (!parts || !parts[0] || !parts[0].text) throw new Error("模型未返回文本，可能被安全策略拦截。");
+      return parts[0].text;
+    }
+    if (provider === "openai") {
+      if (!j.choices || !j.choices[0] || !j.choices[0].message) throw new Error("OpenAI 未返回有效 completion。");
+      var t = j.choices[0].message.content;
+      if (t == null || t === "") throw new Error("OpenAI 返回空内容。");
+      return String(t);
+    }
+    if (provider === "claude") {
+      var bl = j.content && j.content[0];
+      if (!bl || bl.type !== "text" || bl.text == null) throw new Error("Claude 未返回文本块。");
+      return String(bl.text);
+    }
+    throw new Error("未知服务商");
+  }
+
+  function setStep(n) {
+    document.querySelectorAll(".step-panel").forEach(function (el) {
+      el.classList.toggle("active", el.id === "step" + n);
+    });
+    document.querySelectorAll("#steps-bar > span").forEach(function (el) {
+      el.classList.toggle("on", el.getAttribute("data-s") === String(n));
+    });
+  }
+
+  function normCell(s) {
+    return String(s == null ? "" : s).replace(/\s+/g, " ").trim();
+  }
+
+  function findCol(headerRow, aliases) {
+    for (var i = 0; i < headerRow.length; i++) {
+      var c = normCell(headerRow[i]);
+      for (var j = 0; j < aliases.length; j++) {
+        if (c === aliases[j] || c.indexOf(aliases[j]) !== -1) return i;
+      }
+    }
+    return -1;
+  }
+
+  function scoreHeader(headerRow) {
+    var idx = {
+      画面: findCol(headerRow, ["画面", "环节", "模块"]),
+      逐字稿: findCol(headerRow, ["逐字稿", "台词"]),
+      动效: findCol(headerRow, ["动效", "动画"]),
+      备注: findCol(headerRow, ["备注", "说明"])
+    };
+    var score = 0;
+    if (idx.逐字稿 >= 0) score += 3;
+    if (idx.动效 >= 0) score += 3;
+    if (idx.画面 >= 0) score += 1;
+    return { idx: idx, score: score };
+  }
+
+  function pickBestSheet(wb) {
+    var best = null;
+    var bestScore = -1;
+    for (var si = 0; si < wb.SheetNames.length; si++) {
+      var name = wb.SheetNames[si];
+      var ws = wb.Sheets[name];
+      var data = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+      if (!data || !data.length) continue;
+      for (var off = 0; off < Math.min(3, data.length); off++) {
+        var headerRow = data[off];
+        var sc = scoreHeader(headerRow);
+        if (sc.score > bestScore) {
+          bestScore = sc.score;
+          best = { sheetName: name, data: data, idx: sc.idx, headerOffset: off };
+        }
+      }
+    }
+    if (bestScore < 4) {
+      return { error: "未找到同时含「逐字稿」与「动效」的表头（前 3 行内）。" };
+    }
+    best.data = best.data.slice(best.headerOffset);
+    return { best: best };
+  }
+
+  function extractTeachingRows(best) {
+    var idx = best.idx;
+    var data = best.data;
+    var rows = [];
+    for (var r = 1; r < data.length; r++) {
+      var row = data[r] || [];
+      function get(ci) {
+        if (ci < 0) return "";
+        return normCell(row[ci] != null ? row[ci] : "");
+      }
+      var o = {
+        画面: get(idx.画面),
+        逐字稿: get(idx.逐字稿),
+        动效: get(idx.动效),
+        备注: get(idx.备注)
+      };
+      if (o.画面 || o.逐字稿 || o.动效 || o.备注) rows.push(o);
+    }
+    return rows;
+  }
+
+  function buildTeachingPayload(wb) {
+    var pick = pickBestSheet(wb);
+    if (pick.error) return pick;
+    var rows = extractTeachingRows(pick.best);
+    teachingPayload = { sheetName: pick.best.sheetName, rows: rows };
+    return { ok: true };
+  }
+
+  function cloneSheetToAoa(ws) {
+    var aoa = XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+    return XLSX.utils.aoa_to_sheet(aoa);
+  }
+
+  function append教研Sheets(out, wb) {
+    for (var i = 0; i < wb.SheetNames.length; i++) {
+      var sn = wb.SheetNames[i];
+      var cloned = cloneSheetToAoa(wb.Sheets[sn]);
+      var safe = ("教研·" + sn).replace(/[\\/?*[\]:]/g, "_");
+      if (safe.length > 31) safe = safe.slice(0, 31);
+      XLSX.utils.book_append_sheet(out, cloned, safe);
+    }
+  }
+
+  function stripCodeFence(text) {
+    var t = text.trim();
+    var m = t.match(/```(?:markdown|md)?\s*([\s\S]*?)```/i);
+    if (m) return m[1].trim();
+    return t;
+  }
+
+  function parseMarkdownScriptTable(text) {
+    var raw = stripCodeFence(text);
+    var lines = raw.split(/\r?\n/).map(function (l) { return l.trim(); }).filter(Boolean);
+    var start = -1;
+    for (var i = 0; i < lines.length; i++) {
+      if (/\|?\s*镜号\s*\|/.test(lines[i])) { start = i; break; }
+    }
+    if (start === -1) return { error: "未找到以「镜号」开头的 Markdown 表头行。" };
+
+    var dataRows = [];
+    for (var j = start + 1; j < lines.length; j++) {
+      var line = lines[j];
+      if (line.charAt(0) !== "|") break;
+      if (/^\|[\s\-:|]+\|?$/.test(line)) continue;
+      var parts = line.split("|");
+      if (parts.length < 2) break;
+      var cells = parts.slice(1, parts.length - (parts[parts.length - 1] === "" ? 1 : 0));
+      cells = cells.map(function (c) { return c.replace(/<br\s*\/?>/gi, "\n").trim(); });
+      if (cells.length && cells[0].indexOf("镜号") !== -1) continue;
+      while (cells.length < 5) cells.push("");
+      if (cells.length > 5) cells = cells.slice(0, 5);
+      if (cells.every(function (c) { return !c; })) continue;
+      dataRows.push(cells);
+    }
+    if (!dataRows.length) return { error: "解析后没有数据行；请确认表格体在表头分隔行之后。" };
+    return { rows: dataRows };
+  }
+
+  function workbookFromScriptRows(dataRows) {
+    var aoa = [["镜号", "画面", "台词", "画面描述", "备注"]];
+    dataRows.forEach(function (r) {
+      aoa.push([r[0] || "", r[1] || "", r[2] || "", r[3] || "", r[4] || ""]);
+    });
+    var out = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(out, XLSX.utils.aoa_to_sheet(aoa), "脚本表·完整剧情");
+    if (workbookUpload) append教研Sheets(out, workbookUpload);
+    return out;
+  }
+
+  function buildUserPrompt() {
+    var synopsis = $("synopsis").value.trim();
+    var title = $("lesson-title").value.trim() || "（未填课题名）";
+    if (!synopsis) throw new Error("缺少故事梗概。");
+    if (!teachingPayload || !teachingPayload.rows.length) throw new Error("缺少教研表数据，请重新上传。");
+
+    var spec =
+      "【脚本规范 · elementary-animation-storyboard-script · 与 Cursor Skill 同步】\n" +
+      "1）输出一个 Markdown 表格，五列且顺序固定：镜号 | 画面 | 台词 | 画面描述 | 备注。\n" +
+      "2）第一行表头必须是：| 镜号 | 画面 | 台词 | 画面描述 | 备注 |\n" +
+      "3）第二行必须是分隔行：| --- | --- | --- | --- | --- |\n" +
+      "4）台词与画面描述必须用相同编号 【1】【2】【3】… 逐步对齐；若教研逐字稿含 【0】或与 【1】混用，一律照抄保留。\n" +
+      "5）【教研台词保真】教研 JSON 每一行的「逐字稿」：对应教学镜的「台词」列必须逐字拷贝（含换行与标点），不得改写、不得调换句序、不得合并成一句。无逐字稿仅有画面/动效时在备注说明。\n" +
+      "6）【剧情仅衔接】故事梗概拆成的对白/旁白/转场仅作「衔接」，放在教学块之前、之后或两教学块之间；可单独成镜；备注可标「衔接」。禁止与教研原句糅成一句。\n" +
+      "7）【画面描述·分行体】将「动效」写入「画面描述」：每个 【n】 单独一行（单元格内用 <br>）；每条 *复用* 各占一行；可选首行镜头总述。禁止多段 【n】 横排粘成一段。\n" +
+      "8）故事梗概按时间拆镜，勿把梗概整段堆在表前当参考区。\n" +
+      "9）「画面」列可作环节标签（引入、P1、衔接·xxx）。\n" +
+      "10）除表格外不要输出任何解释文字。\n";
+
+    var body =
+      spec +
+      "\n【课题名】" + title +
+      "\n\n【故事梗概 · 叙事主轴】\n" + synopsis +
+      "\n\n【教研动效说明 · JSON 数组】\n" +
+      JSON.stringify(teachingPayload.rows, null, 2) +
+      "\n\n请现在只输出 Markdown 表格。";
+
+    return body;
+  }
+
+  function downloadWorkbook(wb, suffix) {
+    var base = ($("lesson-title").value.trim() || "脚本表").replace(/[\\/:*?"<>|]/g, "_");
+    XLSX.writeFile(wb, base + (suffix || "_完整脚本") + ".xlsx");
+  }
+
+  $("to-step2").addEventListener("click", function () {
+    if (!$("synopsis").value.trim()) {
+      alert("请粘贴故事梗概。");
+      return;
+    }
+    setStep(2);
+  });
+
+  $("back-step1").addEventListener("click", function () { setStep(1); });
+  $("back-step2b").addEventListener("click", function () { setStep(2); });
+
+  $("to-step3").addEventListener("click", function () {
+    setStep(3);
+  });
+
+  $("xlsx-in").addEventListener("change", function (e) {
+    var f = e.target.files[0];
+    $("parse-err").style.display = "none";
+    $("parse-msg").style.display = "none";
+    $("to-step3").disabled = true;
+    workbookUpload = null;
+    teachingPayload = null;
+
+    if (!f) {
+      $("file-name").textContent = "未选择文件";
+      return;
+    }
+    $("file-name").textContent = f.name;
+
+    var reader = new FileReader();
+    reader.onload = function () {
+      try {
+        var buf = new Uint8Array(reader.result);
+        var wb = XLSX.read(buf, { type: "array" });
+        var res = buildTeachingPayload(wb);
+        if (res.error) {
+          $("parse-err").textContent = res.error;
+          $("parse-err").style.display = "block";
+          return;
+        }
+        workbookUpload = wb;
+        $("parse-msg").textContent =
+          "已读取主表「" + teachingPayload.sheetName + "」共 " + teachingPayload.rows.length + " 条教研行；全簿 " + wb.SheetNames.length + " 张表将附在导出 Excel。";
+        $("parse-msg").style.display = "block";
+        $("to-step3").disabled = false;
+      } catch (err) {
+        $("parse-err").textContent = "读取失败：" + (err.message || String(err));
+        $("parse-err").style.display = "block";
+      }
+    };
+    reader.readAsArrayBuffer(f);
+  });
+
+  $("btn-copy-prompt").addEventListener("click", function () {
+    try {
+      var t = buildUserPrompt();
+      navigator.clipboard.writeText(t).then(function () {
+        alert("已复制完整提示词，可粘贴到 Cursor、ChatGPT、Claude 等任意模型。");
+      }, function () {
+        $("ai-raw").value = t;
+        alert("复制失败，已填入下方「模型输出」框，请手动全选复制。");
+      });
+    } catch (err) {
+      alert(err.message || String(err));
+    }
+  });
+
+  $("api-provider").addEventListener("change", refillApiModels);
+  refillApiModels();
+
+  $("btn-api-generate").addEventListener("click", function () {
+    $("llm-api-err").style.display = "none";
+    var key = $("api-key").value.trim();
+    var provider = $("api-provider").value;
+    var model = $("api-model").value;
+    if (!key) {
+      $("llm-api-err").textContent = "请填写 API Key，或使用「复制提示词」。";
+      $("llm-api-err").style.display = "block";
+      return;
+    }
+    var prompt;
+    try {
+      prompt = buildUserPrompt();
+    } catch (err) {
+      $("llm-api-err").textContent = err.message || String(err);
+      $("llm-api-err").style.display = "block";
+      return;
+    }
+
+    var url;
+    var init;
+    if (provider === "gemini") {
+      url =
+        "https://generativelanguage.googleapis.com/v1beta/models/" +
+        encodeURIComponent(model) +
+        ":generateContent?key=" +
+        encodeURIComponent(key);
+      init = {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ role: "user", parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.35, maxOutputTokens: 8192 }
+        })
+      };
+    } else if (provider === "openai") {
+      url = "https://api.openai.com/v1/chat/completions";
+      init = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + key
+        },
+        body: JSON.stringify({
+          model: model,
+          messages: [{ role: "user", content: prompt }],
+          temperature: 0.35,
+          max_tokens: 8192
+        })
+      };
+    } else {
+      url = "https://api.anthropic.com/v1/messages";
+      init = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": key,
+          "anthropic-version": "2023-06-01"
+        },
+        body: JSON.stringify({
+          model: model,
+          max_tokens: 8192,
+          messages: [{ role: "user", content: prompt }]
+        })
+      };
+    }
+
+    $("btn-api-generate").disabled = true;
+    $("btn-api-generate").textContent = "生成中…";
+
+    fetch(url, init)
+      .then(function (res) {
+        return res.json().then(function (j) {
+          if (!res.ok) {
+            var msg =
+              (j && j.error && (j.error.message || String(j.error))) ||
+              (j && j.message) ||
+              res.statusText ||
+              "请求失败";
+            throw new Error(
+              msg + "（OpenAI/Claude 若出现网络/CORS 错误，请用「复制提示词」或 Python：梗概转脚本/generate_full_script.py）"
+            );
+          }
+          return extractLlmTextOk(provider, j);
+        });
+      })
+      .then(function (text) {
+        $("ai-raw").value = text;
+        var pr = parseMarkdownScriptTable(text);
+        if (pr.error) {
+          $("llm-api-err").textContent = "已填入下方文本，但自动解析失败：" + pr.error + " 可手动删改后再点「解析表格」。";
+          $("llm-api-err").style.display = "block";
+        } else {
+          downloadWorkbook(workbookFromScriptRows(pr.rows), "_完整脚本");
+        }
+      })
+      .catch(function (err) {
+        $("llm-api-err").textContent = err.message || String(err);
+        $("llm-api-err").style.display = "block";
+      })
+      .finally(function () {
+        $("btn-api-generate").disabled = false;
+        $("btn-api-generate").textContent = "调用 API 生成完整脚本";
+      });
+  });
+
+  $("btn-parse").addEventListener("click", function () {
+    $("parse-table-err").style.display = "none";
+    var text = $("ai-raw").value.trim();
+    if (!text) {
+      $("parse-table-err").textContent = "请先粘贴模型输出。";
+      $("parse-table-err").style.display = "block";
+      return;
+    }
+    if (!workbookUpload) {
+      $("parse-table-err").textContent = "教研 Excel 已丢失，请返回第二步重新上传。";
+      $("parse-table-err").style.display = "block";
+      return;
+    }
+    var pr = parseMarkdownScriptTable(text);
+    if (pr.error) {
+      $("parse-table-err").textContent = pr.error;
+      $("parse-table-err").style.display = "block";
+      return;
+    }
+    try {
+      downloadWorkbook(workbookFromScriptRows(pr.rows), "_完整脚本");
+    } catch (err) {
+      $("parse-table-err").textContent = err.message || String(err);
+      $("parse-table-err").style.display = "block";
+    }
+  });
+
+  $("btn-dumb-map").addEventListener("click", function () {
+    try {
+      var synopsis = $("synopsis").value.trim();
+      if (!synopsis || !workbookUpload) throw new Error("需要梗概与教研表。");
+      var pick = pickBestSheet(workbookUpload);
+      if (pick.error) throw new Error(pick.error);
+      var idx = pick.best.idx;
+      var data = pick.best.data;
+      var aoa = [["镜号", "画面", "台词", "画面描述", "备注"]];
+      var mirror = 1;
+      for (var r = 1; r < data.length; r++) {
+        var row = data[r] || [];
+        function get(ci) {
+          if (ci < 0) return "";
+          return normCell(row[ci] != null ? row[ci] : "");
+        }
+        var 画面 = get(idx.画面);
+        var 逐字稿 = get(idx.逐字稿);
+        var 动效 = get(idx.动效);
+        var 备注 = get(idx.备注);
+        if (!画面 && !逐字稿 && !动效) continue;
+        if (画面 && !逐字稿 && !动效) {
+          aoa.push(["", 画面, "", "", 备注 || "教研·环节"]);
+          continue;
+        }
+        if (逐字稿 || 动效) {
+          aoa.push([String(mirror), 画面, 逐字稿, 动效, 备注]);
+          mirror++;
+        }
+      }
+      var out = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(out, XLSX.utils.aoa_to_sheet(aoa), "脚本表·仅映射");
+      append教研Sheets(out, workbookUpload);
+      downloadWorkbook(out, "_仅教研映射");
+    } catch (err) {
+      alert(err.message || String(err));
+    }
+  });
+
+  document.querySelectorAll("#steps-bar > span").forEach(function (el) {
+    el.addEventListener("click", function () {
+      var n = el.getAttribute("data-s");
+      if (n === "2" && !$("synopsis").value.trim()) return;
+      if (n === "3" && (!workbookUpload || $("to-step3").disabled)) return;
+      setStep(+n);
+    });
+  });
+})();
+  </script>
+  <script>
+  (function () {
+    if (window.matchMedia("(pointer: coarse)").matches) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    var root = document.documentElement;
+    var fx = document.getElementById("cursor-fx");
+    if (!fx) return;
+    var cell = fx.querySelector(".cursor-fx__cell");
+    if (!cell) return;
+    root.classList.add("has-custom-cursor");
+    window.addEventListener(
+      "pointermove",
+      function (e) {
+        cell.style.transform = "translate(" + e.clientX + "px," + e.clientY + "px)";
+      },
+      { passive: true }
+    );
+  })();
+  </script>
+</body>
+</html>
