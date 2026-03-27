@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>蜂巢脚本生成器 · 梗概 + 教研动效 → AI 五列表</title>
-  <meta name="description" content="蜂巢脚本生成器：以已定稿梗概串起故事线，教研动效说明表的讲解与镜头动效并入对应教学镜，生成五列齐全、与制作范例同口径的脚本表；支持 Gemini / OpenAI / Claude / OpenAI 兼容或 Cursor Skill。" />
+  <meta name="description" content="蜂巢脚本生成器：故事梗概与教研动效说明融合为完整五列脚本（elementary-animation-storyboard-script），支持 Gemini 或粘贴 AI 结果导出 Excel。" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;600;700;800;900&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet" />
@@ -53,6 +53,7 @@
     }
     * { box-sizing: border-box; }
     html { scroll-behavior: smooth; }
+    /* 自定义光标：蜂巢六边形 + 描边蜜流 + 中心蜜滴 */
     .cursor-fx {
       display: none;
       pointer-events: none;
@@ -834,14 +835,14 @@
             </li>
           </ul>
           <p class="head-lead">
-            以已定稿梗概串起故事线，教研动效说明表的讲解与镜头动效并入对应教学镜，生成五列齐全、与制作范例同口径的脚本表。
+            以<strong>已定稿梗概</strong>串起故事线，教研<strong>动效说明表</strong>的讲解与镜头动效<strong>并入对应教学镜</strong>，生成<strong>五列齐全、与制作范例同口径的脚本表</strong>。
           </p>
         </div>
       </div>
     </header>
     <div class="banner">
-      <p><strong>方式一（本页）：</strong>梗概拆镜并嵌入教研「逐字稿 / 动效」需大模型。本页<strong>不上传</strong>你的内容；可选 <strong>Gemini / OpenAI / Claude</strong> 直连，或 <strong>OpenAI 兼容</strong>（国内 DeepSeek、通义兼容模式、Moonshot 等，自填 Base URL）；海外官方常被 CORS 拦截，国内是否允许浏览器直连因平台而异，失败请用「复制提示词」或 <code>梗概转脚本/generate_full_script.py</code>。</p>
-      <p><strong>方式二（转回Cursor）：</strong>将下载好的SKILL解压到 <code>~/.cursor/skills/elementary-animation-storyboard-script/</code>，该文件夹根层即 <code>SKILL.md</code> 与 <code>reference.md</code>；重启或新开窗口后，对话里写「按 elementary-animation-storyboard-script 规范写脚本」并上传动效说明和梗概即可在 Cursor 内产出，无需本页。</p>
+      <p><strong>方式一（本页）：</strong>梗概拆镜并嵌入教研「逐字稿 / 动效」需大模型。可选 <strong>Gemini / OpenAI / Claude</strong> 直连，或 <strong>OpenAI 兼容</strong>（国内 DeepSeek、通义兼容模式、Moonshot 等，自填 Base URL）；海外官方常被 CORS 拦截，国内是否允许浏览器直连因平台而异，失败请用「复制提示词」或 <code>梗概转脚本/generate_full_script.py</code>。</p>
+      <p><strong>方式二（转回Cursor）：</strong>将下载好的SKILL解压到 <code>~/.cursor/skills/elementary-animation-storyboard-script/</code>，该文件夹<strong>根层</strong>即 <code>SKILL.md</code> 与 <code>reference.md</code>；重启或新开窗口后，对话里写「按 elementary-animation-storyboard-script 规范写脚本」并上传动效说明和梗概即可在 Cursor 内产出，无需本页。</p>
     </div>
     </div>
 
@@ -879,7 +880,7 @@
     <section class="step-panel" id="step2">
       <div class="card">
         <h2>第二步：教研「动效说明」Excel</h2>
-        <p class="hint">需含列：<strong>画面</strong>、<strong>逐字稿</strong>、<strong>动效</strong>（可有 <strong>备注</strong>）。表头可在第 1～3 行。生成时<strong>逐字稿将逐字进入「台词」</strong>，<strong>动效进入「画面描述」且分行书写</strong>；梗概仅作衔接镜，不改写教研句。</p>
+        <p class="hint">需含列：<strong>画面</strong>、<strong>逐字稿</strong>、<strong>动效</strong>（可有 <strong>备注</strong>）。表头可在第 1～3 行。AI 将把各行<strong>融合进脚本中对应教学环节</strong>，而不是整表贴在前面当附录。</p>
         <div class="file-row">
           <label class="pick" for="xlsx-in">点击选择 .xlsx</label>
           <input type="file" id="xlsx-in" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" />
@@ -897,30 +898,38 @@
     <section class="step-panel" id="step3">
       <div class="card">
         <h2>第三步：AI 生成并导出 Excel</h2>
-        <p class="hint">生成结果须为 Markdown 五列表；「画面描述」列请用 <code>&lt;br&gt;</code> 换行以对应 Excel 多行。解析后写入「脚本表·完整剧情」（列已设自动换行），教研各表以「教研·」前缀附在同一簿备查。</p>
+        <p class="hint">生成结果须为 Markdown 五列表；解析后写入「脚本表·完整剧情」，教研各表以「教研·」前缀附在同一工作簿中备查。</p>
 
         <h3>方式 A：浏览器调用 API</h3>
-        <p class="hint api-cors-hint">可选 <strong>Gemini</strong>、<strong>OpenAI</strong>、<strong>Claude</strong>、<strong>OpenAI 兼容</strong>（国内 DeepSeek、通义兼容、Moonshot 等，自填 Base URL）。海外官方接口<strong>常被 CORS 拦截</strong>；兼容接口是否允许浏览器直连因平台而异，失败请用「复制提示词」或本地 Python。</p>
+        <p class="hint api-cors-hint">可选 <strong>Gemini</strong>、<strong>OpenAI</strong>、<strong>Claude</strong>，或 <strong>OpenAI 兼容（国内/自建）</strong>。海外官方接口<strong>常被浏览器 CORS 拦截</strong>；国内兼容地址是否允许浏览器直连以各平台说明为准，失败请用「复制提示词」或本地 Python。</p>
         <div class="grid2">
           <label class="lbl">服务商
             <select id="api-provider" autocomplete="off">
               <option value="gemini">Google Gemini</option>
               <option value="openai">OpenAI</option>
               <option value="claude">Anthropic Claude</option>
-              <option value="openai_compat">OpenAI 兼容（DeepSeek / 通义 / Moonshot 等）</option>
+              <option value="openai_compat">OpenAI 兼容（国内 DeepSeek / 通义等）</option>
             </select>
           </label>
-          <label class="lbl" id="lbl-api-model">模型
+          <label class="lbl" id="api-model-label-select">模型
             <select id="api-model" autocomplete="off"></select>
-            <input type="text" id="api-model-compat" style="display:none" placeholder="如 deepseek-chat、moonshot-v1-8k（以平台文档为准）" autocomplete="off" />
+          </label>
+          <label class="lbl" id="api-model-label-text" style="display:none">模型名
+            <input type="text" id="api-model-text" list="openai-compat-model-suggestions" autocomplete="off" placeholder="按服务商文档填写，如 deepseek-chat" />
+            <datalist id="openai-compat-model-suggestions">
+              <option value="deepseek-chat"></option>
+              <option value="deepseek-reasoner"></option>
+              <option value="qwen-plus"></option>
+              <option value="qwen-turbo"></option>
+              <option value="moonshot-v1-8k"></option>
+              <option value="glm-4-flash"></option>
+            </datalist>
           </label>
         </div>
-        <div id="compat-api-block" style="display:none;margin-top:0.75rem;">
-          <label class="lbl">OpenAI 兼容 Base URL
-            <input type="text" id="api-base-url" autocomplete="off" placeholder="https://api.deepseek.com/v1" />
-          </label>
-          <p class="hint" style="margin-top:0.45rem;margin-bottom:0">填写到 <code>…/v1</code> 为止，<strong>不要</strong>包含 <code>/chat/completions</code>（与各厂商「OpenAI 兼容」文档一致）。</p>
-        </div>
+        <label class="lbl" id="api-base-url-wrap" style="display:none;margin-top:0.65rem">OpenAI 兼容 · Base URL（须与文档一致，请求将发往：Base + <code>/chat/completions</code>）
+          <input type="text" id="api-base-url" autocomplete="off" placeholder="https://api.deepseek.com/v1" />
+        </label>
+        <p class="hint" id="api-base-url-hint" style="display:none;margin-top:0.35rem">示例：DeepSeek <code>https://api.deepseek.com/v1</code>；通义兼容模式 <code>https://dashscope.aliyuncs.com/compatible-mode/v1</code>；Moonshot <code>https://api.moonshot.cn/v1</code>。</p>
         <label class="lbl" style="margin-top:0.75rem">API Key（仅本页内存，刷新即无）
           <input type="password" id="api-key" autocomplete="off" placeholder="" />
         </label>
@@ -969,7 +978,7 @@
         </svg>
         <span class="fh-hex">⬡</span>
       </div>
-      规范：教研逐字 · 剧情衔接 · 画面描述分行体 · 【n】/【0】对齐 · *复用* · 默认 Excel
+      规范：镜号 · 画面 · 台词 · 画面描述 · 备注 · 【n】对齐 · *复用*
     </footer>
   </div>
 
@@ -986,58 +995,30 @@
     claude: ["claude-sonnet-4-20250514", "claude-3-5-sonnet-20241022", "claude-3-5-haiku-20241022"]
   };
 
-  function toggleOpenAiCompatUi() {
-    var compat = $("api-provider").value === "openai_compat";
-    var sel = $("api-model");
-    var txt = $("api-model-compat");
-    var block = $("compat-api-block");
-    if (!sel || !txt || !block) return;
-    if (compat) {
-      block.style.display = "block";
-      sel.style.display = "none";
-      txt.style.display = "block";
-      if (!txt.value.trim()) txt.value = "deepseek-chat";
-    } else {
-      block.style.display = "none";
-      sel.style.display = "block";
-      txt.style.display = "none";
-    }
-  }
-
   function refillApiModels() {
     if (!$("api-provider") || !$("api-model") || !$("api-key")) return;
     var p = $("api-provider").value;
+    var isCompat = p === "openai_compat";
     var sel = $("api-model");
-    if (p !== "openai_compat") {
-      var list = API_MODELS[p] || [];
-      sel.innerHTML = "";
-      list.forEach(function (m) {
-        var o = document.createElement("option");
-        o.value = m;
-        o.textContent = m;
-        sel.appendChild(o);
-      });
-    }
+    var list = API_MODELS[p] || [];
+    sel.innerHTML = "";
+    list.forEach(function (m) {
+      var o = document.createElement("option");
+      o.value = m;
+      o.textContent = m;
+      sel.appendChild(o);
+    });
     var ph = {
       gemini: "Google AI Studio 项目 Key",
       openai: "sk-…（OpenAI）",
       claude: "sk-ant-…（Anthropic）",
-      openai_compat: "各平台控制台发放的 API Key（非登录密码）"
+      openai_compat: "各平台控制台发放的 API Key"
     };
     $("api-key").placeholder = ph[p] || "";
-    toggleOpenAiCompatUi();
-  }
-
-  function normalizeCompatBaseUrl(raw) {
-    var s = String(raw || "").trim().replace(/\/+$/, "");
-    return s;
-  }
-
-  function getSelectedModel() {
-    if ($("api-provider").value === "openai_compat") {
-      return ($("api-model-compat") && $("api-model-compat").value.trim()) || "";
-    }
-    return ($("api-model") && $("api-model").value) || "";
+    if ($("api-model-label-select")) $("api-model-label-select").style.display = isCompat ? "none" : "";
+    if ($("api-model-label-text")) $("api-model-label-text").style.display = isCompat ? "" : "none";
+    if ($("api-base-url-wrap")) $("api-base-url-wrap").style.display = isCompat ? "" : "none";
+    if ($("api-base-url-hint")) $("api-base-url-hint").style.display = isCompat ? "block" : "none";
   }
 
   function extractLlmTextOk(provider, j) {
@@ -1047,9 +1028,9 @@
       return parts[0].text;
     }
     if (provider === "openai" || provider === "openai_compat") {
-      if (!j.choices || !j.choices[0] || !j.choices[0].message) throw new Error("模型接口未返回有效 completion。");
+      if (!j.choices || !j.choices[0] || !j.choices[0].message) throw new Error("OpenAI 兼容接口未返回有效 completion。");
       var t = j.choices[0].message.content;
-      if (t == null || t === "") throw new Error("模型返回空内容。");
+      if (t == null || t === "") throw new Error("接口返回空内容。");
       return String(t);
     }
     if (provider === "claude") {
@@ -1218,17 +1199,16 @@
     if (!teachingPayload || !teachingPayload.rows.length) throw new Error("缺少教研表数据，请重新上传。");
 
     var spec =
-      "【脚本规范 · elementary-animation-storyboard-script · 与 Cursor Skill 同步】\n" +
+      "【脚本规范 · elementary-animation-storyboard-script】\n" +
       "1）输出一个 Markdown 表格，五列且顺序固定：镜号 | 画面 | 台词 | 画面描述 | 备注。\n" +
       "2）第一行表头必须是：| 镜号 | 画面 | 台词 | 画面描述 | 备注 |\n" +
       "3）第二行必须是分隔行：| --- | --- | --- | --- | --- |\n" +
-      "4）台词与画面描述必须用相同编号 【1】【2】【3】… 逐步对齐；若教研逐字稿含 【0】或与 【1】混用，一律照抄保留。\n" +
-      "5）【教研台词保真】教研 JSON 每一行的「逐字稿」：对应教学镜的「台词」列必须逐字拷贝（含换行与标点），不得改写、不得调换句序、不得合并成一句。无逐字稿仅有画面/动效时在备注说明。\n" +
-      "6）【剧情仅衔接】故事梗概拆成的对白/旁白/转场仅作「衔接」，放在教学块之前、之后或两教学块之间；可单独成镜；备注可标「衔接」。禁止与教研原句糅成一句。\n" +
-      "7）【画面描述·分行体】将「动效」写入「画面描述」：每个 【n】 单独一行（单元格内用 <br>）；每条 *复用* 各占一行；可选首行镜头总述。禁止多段 【n】 横排粘成一段。\n" +
-      "8）故事梗概按时间拆镜，勿把梗概整段堆在表前当参考区。\n" +
-      "9）「画面」列可作环节标签（引入、P1、衔接·xxx）。\n" +
-      "10）除表格外不要输出任何解释文字。\n";
+      "4）台词与画面描述必须用相同编号 【1】【2】【3】… 逐步对齐（可含 【2.5】 等与教研一致）。\n" +
+      "5）画面描述可写 *复用场景-xxx* *复用道具-xxx* *复用人设-xxx*，命名一经确定勿随意改写。\n" +
+      "6）教研表中的互动占位（如「个性化写作练习」）可写入台词或备注，保持可识别。\n" +
+      "7）故事梗概是剧情主体：请按时间顺序拆成多镜，覆盖梗概中的关键情节与转折；不要把梗概单独堆在表前几行当「参考区」。\n" +
+      "8）教研 JSON 每一行是一条教学素材：请把「逐字稿」融入对应镜的「台词」（可改写口吻以贴合剧情但保留知识点与【n】步骤），把「动效」融入「画面描述」（可改写为可见镜头与动效指令，保留【n】与可执行细节如高亮、停顿）。「画面」列可作环节标签（如 引入、P1）。\n" +
+      "9）除表格外不要输出任何解释文字。\n";
 
     var body =
       spec +
@@ -1320,24 +1300,27 @@
     $("llm-api-err").style.display = "none";
     var key = $("api-key").value.trim();
     var provider = $("api-provider").value;
-    var model = getSelectedModel();
-    if (!key) {
-      $("llm-api-err").textContent = "请填写 API Key，或使用「复制提示词」。";
-      $("llm-api-err").style.display = "block";
-      return;
-    }
+    var model =
+      provider === "openai_compat"
+        ? ($("api-model-text") && $("api-model-text").value.trim()) || ""
+        : $("api-model").value;
     if (provider === "openai_compat") {
-      var base = normalizeCompatBaseUrl($("api-base-url") ? $("api-base-url").value : "");
-      if (!base) {
-        $("llm-api-err").textContent = "请填写 OpenAI 兼容 Base URL（到 …/v1）。";
+      var baseRaw = ($("api-base-url") && $("api-base-url").value.trim()) || "";
+      if (!baseRaw) {
+        $("llm-api-err").textContent = "请填写 OpenAI 兼容接口的 Base URL。";
         $("llm-api-err").style.display = "block";
         return;
       }
       if (!model) {
-        $("llm-api-err").textContent = "请填写模型名（见各平台文档）。";
+        $("llm-api-err").textContent = "请填写模型名（见各服务商文档）。";
         $("llm-api-err").style.display = "block";
         return;
       }
+    }
+    if (!key) {
+      $("llm-api-err").textContent = "请填写 API Key，或使用「复制提示词」。";
+      $("llm-api-err").style.display = "block";
+      return;
     }
     var prompt;
     try {
@@ -1380,8 +1363,8 @@
         })
       };
     } else if (provider === "openai_compat") {
-      var baseU = normalizeCompatBaseUrl($("api-base-url").value);
-      url = baseU + "/chat/completions";
+      var base = $("api-base-url").value.trim().replace(/\/+$/, "");
+      url = base + "/chat/completions";
       init = {
         method: "POST",
         headers: {
@@ -1425,7 +1408,7 @@
               res.statusText ||
               "请求失败";
             throw new Error(
-              msg + "（若出现 CORS/网络错误，可换兼容厂商、用「复制提示词」或 Python：梗概转脚本/generate_full_script.py）"
+              msg + "（若出现网络/CORS 错误，请用「复制提示词」或 Python：梗概转脚本/generate_full_script.py）"
             );
           }
           return extractLlmTextOk(provider, j);
